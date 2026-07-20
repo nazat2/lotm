@@ -38,11 +38,6 @@ function SmokeTrail() {
     section.addEventListener("mousemove", handleMouseMove);
 
     function animate() {
-      if (document.hidden) {
-        animationId = requestAnimationFrame(animate);
-        return;
-      }
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.current.forEach((p) => {

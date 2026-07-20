@@ -22,7 +22,7 @@ const CYCLE_INTERVAL = 4000; // How often a name swaps out
 function IWasHere() {
   const isMobile = useIsMobile();
   
-const MAX_VISIBLE = isMobile ? 5 : 25;
+const MAX_VISIBLE = isMobile ? 5 : 25; ;
   const [nameInput, setNameInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [allNames, setAllNames] = useState([]);
@@ -153,7 +153,7 @@ const MAX_VISIBLE = isMobile ? 5 : 25;
   return (
     <section
       id="characters"
-      className={`relative py-32 px-6 overflow-hidden scroll-mt-20 min-h-[600px] sm:min-h-[850px] flex items-center justify-center ${
+      className={`relative py-32 px-6 overflow-hidden scroll-mt-20 min-h-[850px] flex items-center justify-center ${
         isMobile ? "bg-fog/20" : "bg-void"
       }`}
     >

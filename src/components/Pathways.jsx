@@ -58,7 +58,7 @@ function Pathways() {
           <p className="font-heading italic text-gold tracking-[0.3em] text-base uppercase mb-4">
             Choose Your Fate
           </p>
-          <h2 className="font-display text-parchment text-3xl md:text-5xl tracking-wide mb-12">
+          <h2 className="font-display text-parchment text-3xl md:text-5xl tracking-wide mb-50">
             The Pathways
           </h2>
         </div>

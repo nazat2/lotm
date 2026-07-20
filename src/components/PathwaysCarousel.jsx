@@ -112,7 +112,7 @@ function PathwaysCarousel() {
               onClick={() => handleCardClick(i, isActive)}
             >
               <div
-                className={`w-full h-full border overflow-hidden relative bg-void-card transition-colors duration-300 cursor-pointer ${
+                className={`w-full h-75 border overflow-hidden relative bg-void-card transition-colors duration-300 cursor-pointer ${
                   isActive ? "border-gold shadow-[0_0_25px_rgba(184,149,47,0.25)]" : "border-gold-dim/30"
                 }`}
               >
@@ -135,14 +135,14 @@ function PathwaysCarousel() {
 
       <button
         onClick={() => goTo(activeIndex - 1)}
-        className="absolute left-1 sm:left-[-10px] top-1/2 -translate-y-1/2 text-gold-dim hover:text-gold text-4xl sm:text-6xl z-20 transition-colors duration-300 px-1"
+        className="absolute left-2 sm:left-[-10px] top-1/2 -translate-y-[-90px] text-gold-dim hover:text-gold text-6xl z-20 transition-colors duration-300"
         aria-label="Previous pathway"
       >
         ‹
       </button>
       <button
         onClick={() => goTo(activeIndex + 1)}
-        className="absolute right-1 sm:right-[-10px] top-1/2 -translate-y-1/2 text-gold-dim hover:text-gold text-4xl sm:text-6xl z-20 transition-colors duration-300 px-1"
+        className="absolute right-2 sm:right-[-10px] top-1/2 -translate-y-[-90px] text-gold-dim hover:text-gold text-6xl z-20 transition-colors duration-300"
         aria-label="Next pathway"
       >
         ›

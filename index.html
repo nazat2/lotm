@@ -2,6 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+     <script src="https://cdn.botpress.cloud/webchat/v3.6/inject.js"></script>
+    <script src="https://files.bpcontent.cloud/2026/07/09/06/20260709065625-R2Q87BQH.js" defer></script>
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js"></script>
     <link rel="icon" type="image/png" href="/navLogo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,30 +15,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-
-    <!-- Botpress webchat: loaded after the page is idle so it never blocks first paint / mobile scroll -->
-    <script>
-      (function loadBotpress() {
-        function inject() {
-          var s1 = document.createElement("script");
-          s1.src = "https://cdn.botpress.cloud/webchat/v3.6/inject.js";
-          s1.defer = true;
-          document.body.appendChild(s1);
-
-          s1.onload = function () {
-            var s2 = document.createElement("script");
-            s2.src = "https://files.bpcontent.cloud/2026/07/09/06/20260709065625-R2Q87BQH.js";
-            s2.defer = true;
-            document.body.appendChild(s2);
-          };
-        }
-
-        if ("requestIdleCallback" in window) {
-          window.addEventListener("load", () => requestIdleCallback(inject, { timeout: 4000 }));
-        } else {
-          window.addEventListener("load", () => setTimeout(inject, 2000));
-        }
-      })();
-    </script>
   </body>
 </html>

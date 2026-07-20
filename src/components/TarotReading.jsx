@@ -114,7 +114,7 @@ function TarotReading() {
   ) : (
     /* DESKTOP: fanned arc layout */
     <Reveal>
-      <div className="relative h-[340px] sm:h-[360px] flex items-top justify-center mt-20 mb-20 scale-[0.6] min-[900px]:scale-75 min-[1200px]:scale-100 origin-center">
+      <div className="relative h-[340px] sm:h-[360px] flex items-top justify-center mt-20 mb-20">
         {deck.map((card, i) => {
           const total = deck.length;
           const pickedIndex = selected.findIndex((s) => s.id === card.id);
