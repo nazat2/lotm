@@ -1,51 +1,57 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import useIsMobile from "../hooks/useIsMobile";
 
 const SPLINE_SCRIPT_SRC =
   "https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js";
 const SPLINE_SCENE_URL =
   "https://prod.spline.design/BSDrRBYEFPmzQ5qL/scene.splinecode";
-// If the 3D scene hasn't painted by this point, stop waiting and just keep
-// the lightweight fallback — better than an indefinite blank hero section.
-const SPLINE_TIMEOUT_MS = 8000;
+// If the viewer script can't even load (blocked/offline) within this window,
+// give up and just keep the lightweight gradient fallback.
+const SPLINE_SCRIPT_TIMEOUT_MS = 10000;
 
 function Hero() {
   const isMobile = useIsMobile();
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [sceneVisible, setSceneVisible] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
   const [sceneFailed, setSceneFailed] = useState(false);
-  const viewerRef = useRef(null);
 
+  // The Spline 3D viewer is a heavy WebGL asset (several MB + GPU/battery cost),
+  // so it's only fetched on non-mobile devices to keep the mobile experience
+  // light. A gradient background is always rendered underneath, so even if the
+  // script or scene fails to load, the hero never goes blank.
   useEffect(() => {
     if (isMobile) return;
 
     let cancelled = false;
+    const markReady = () => !cancelled && setSceneReady(true);
+    const markFailed = () => !cancelled && setSceneFailed(true);
 
-    function markLoaded() {
-      if (!cancelled) setScriptLoaded(true);
-    }
-    function markFailed() {
-      if (!cancelled) setSceneFailed(true);
-    }
-
+    // Already registered from an earlier mount/navigation — show immediately.
     if (customElements.get("spline-viewer")) {
-      markLoaded();
-    } else {
-      const existing = document.querySelector(`script[src="${SPLINE_SCRIPT_SRC}"]`);
-      if (existing) {
-        existing.addEventListener("load", markLoaded);
-        existing.addEventListener("error", markFailed);
-      } else {
-        const script = document.createElement("script");
-        script.type = "module";
-        script.src = SPLINE_SCRIPT_SRC;
-        script.onload = markLoaded;
-        script.onerror = markFailed;
-        document.head.appendChild(script);
-      }
+      markReady();
+      return () => {
+        cancelled = true;
+      };
     }
 
-    const timeout = setTimeout(markFailed, SPLINE_TIMEOUT_MS);
+    const existing = document.querySelector(`script[src="${SPLINE_SCRIPT_SRC}"]`);
+    if (existing) {
+      existing.addEventListener("load", markReady);
+      existing.addEventListener("error", markFailed);
+    } else {
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = SPLINE_SCRIPT_SRC;
+      script.addEventListener("load", markReady);
+      script.addEventListener("error", markFailed);
+      document.head.appendChild(script);
+    }
+
+    // customElements.whenDefined resolves once the tag is actually usable —
+    // more reliable than trusting the <script> "load" event alone, since the
+    // module can still be doing async setup work after it fires.
+    customElements.whenDefined("spline-viewer").then(markReady).catch(markFailed);
+
+    const timeout = setTimeout(markFailed, SPLINE_SCRIPT_TIMEOUT_MS);
 
     return () => {
       cancelled = true;
@@ -53,27 +59,7 @@ function Hero() {
     };
   }, [isMobile]);
 
-  useEffect(() => {
-    if (!scriptLoaded || isMobile) return;
-    const el = viewerRef.current;
-    if (!el) return;
-
-    function handleLoad() {
-      setSceneVisible(true);
-    }
-    function handleError() {
-      setSceneFailed(true);
-    }
-
-    el.addEventListener("load", handleLoad);
-    el.addEventListener("error", handleError);
-    return () => {
-      el.removeEventListener("load", handleLoad);
-      el.removeEventListener("error", handleError);
-    };
-  }, [scriptLoaded, isMobile]);
-
-  const showScene = !isMobile && scriptLoaded && !sceneFailed;
+  const showScene = !isMobile && sceneReady && !sceneFailed;
 
   return (
     <section className="relative w-full h-screen overflow-hidden bg-void">
@@ -84,13 +70,11 @@ function Hero() {
         <div className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-crimson/10 rounded-full blur-3xl" />
       </div>
 
-      {/* Spline 3D scene — desktop/tablet only, fades in once actually ready */}
+      {/* Spline 3D scene — desktop/tablet only, layered above the gradient */}
       {showScene && (
         <spline-viewer
-          ref={viewerRef}
           url={SPLINE_SCENE_URL}
-          className="absolute inset-0 w-full h-full transition-opacity duration-700"
-          style={{ opacity: sceneVisible ? 1 : 0 }}
+          className="absolute inset-0 w-full h-full"
         />
       )}
 
