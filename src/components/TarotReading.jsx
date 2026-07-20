@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import pathwayCards from "../data/pathwayCards";
 import Reveal from "./Reveal";
 import useIsMobile from "../hooks/useIsMobile";
+import useViewportScale from "../hooks/useViewportScale";
 
 const SPREAD_LABELS = ["Past", "Present", "Future"];
 
@@ -14,6 +15,7 @@ function shuffleDeck(deck) {
 
 function TarotReading() {
   const isMobile = useIsMobile();
+  const fanScale = useViewportScale(1200, 0.6, 1);
   const [deck, setDeck] = useState(() =>
     pathwayCards.map((c, i) => ({ ...c, id: i }))
   );
@@ -114,7 +116,10 @@ function TarotReading() {
   ) : (
     /* DESKTOP: fanned arc layout */
     <Reveal>
-      <div className="relative h-[340px] sm:h-[360px] flex items-top justify-center mt-20 mb-20">
+      <div
+        className="relative h-[340px] sm:h-[360px] flex items-top justify-center mt-20 mb-20"
+        style={{ transform: `scale(${fanScale})`, transformOrigin: "top center" }}
+      >
         {deck.map((card, i) => {
           const total = deck.length;
           const pickedIndex = selected.findIndex((s) => s.id === card.id);
@@ -228,6 +233,8 @@ function RevealedCard({ card, label, isFlipped }) {
             <img
               src={card.image}
               alt={card.name}
+              width={640}
+              height={896}
               className="absolute inset-0 w-full h-full object-cover"
               style={{ transform: card.isReversed ? "rotate(180deg)" : "none" }}
               draggable={false}

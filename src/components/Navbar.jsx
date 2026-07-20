@@ -35,6 +35,8 @@ function Navbar() {
               <img 
                 src={navLogo} 
                 alt="Logo" 
+                width={48}
+                height={48}
                 className="w-12 h-12 object-contain" // Limits the image size so it sits nicely inside the circle
                 />
             </div>

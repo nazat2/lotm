@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "./Reveal";
 import useIsMobile from "../hooks/useIsMobile";
+import useViewportScale from "../hooks/useViewportScale";
 
 const pathways = [
   { name: "Fool", image: "/images/pathways/0fool.jpg", desc: "A pathway of masks and misdirection, where deception becomes a shield against a world too vast to face honestly." },
@@ -71,12 +72,14 @@ function PathwaysCarousel() {
   const activePathway = pathways[activeIndex];
 
   const isMobile = useIsMobile();
+  const scale = useViewportScale(1100, 0.55, 1);
 
   return (
     <Reveal>
     <div className="relative h-[420px] flex items-center justify-center select-none">
       <motion.div
         className="relative w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing"
+        style={{ scale }}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.15}
@@ -112,13 +115,15 @@ function PathwaysCarousel() {
               onClick={() => handleCardClick(i, isActive)}
             >
               <div
-                className={`w-full h-75 border overflow-hidden relative bg-void-card transition-colors duration-300 cursor-pointer ${
+                className={`w-full h-full border overflow-hidden relative bg-void-card transition-colors duration-300 cursor-pointer ${
                   isActive ? "border-gold shadow-[0_0_25px_rgba(184,149,47,0.25)]" : "border-gold-dim/30"
                 }`}
               >
                 <img
                   src={p.image}
                   alt={p.name}
+                  width={640}
+                  height={896}
                   className="absolute inset-0 w-full h-full object-cover"
                   draggable={false}
                   loading="lazy"
@@ -190,6 +195,8 @@ function PathwaysCarousel() {
         <img
           src={activePathway.image}
           alt={activePathway.name}
+          width={640}
+          height={896}
           className="w-full h-full object-cover"
         />
 

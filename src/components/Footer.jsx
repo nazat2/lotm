@@ -69,35 +69,10 @@ function Footer() {
       © {new Date().getFullYear()} Created by Lance Christian C. Crucis
     </p>
 
-    {/* Social logos */}
+    {/* Contact */}
     <div className="flex items-center gap-3">
       <a
-        href="https://www.facebook.com/lance.christian.c.crucis"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="opacity-40 hover:opacity-100 transition-opacity duration-300"
-        aria-label="Facebook"
-      >
-        <img src="/images/icons/facebook.svg" alt="Facebook" className="w-10 h-10 sm:w-5 sm:h-5" loading="lazy"/>
-      </a>
-      <a
-        href="https://www.linkedin.com/in/lance-christian-crucis-317144351/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="opacity-40 hover:opacity-100 transition-opacity duration-300"
-        aria-label="LinkedIn"
-      >
-        <img src="/images/icons/linkedin.svg" alt="LinkedIn" className="w-10 h-10 sm:w-5 sm:h-5" loading="lazy"/>
-      </a>
-      <a
-        href="https://www.tiktok.com/@lancecrucis"
-        className="opacity-40 hover:opacity-100 transition-opacity duration-300"
-        aria-label="Tiktok"
-      >
-        <img src="/images/icons/tiktok.svg" alt="Tiktok" className="w-10 h-10 sm:w-5 sm:h-5" loading="lazy" />
-      </a>
-      <a
-        href="mailto:lancecrucis123@gmail.com"
+        href="mailto:mnajat0508@gmail.com"
         className="opacity-40 hover:opacity-100 transition-opacity duration-300"
         aria-label="Email"
       >
