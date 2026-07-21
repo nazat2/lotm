@@ -53,7 +53,7 @@ function TarotReading() {
   }
 
   return (
-    <section id="factions" className="relative bg-void-light py-23 px-6 scroll-mt-18">
+    <section id="factions" className="relative bg-void-light py-23 px-6 scroll-mt-18 [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
         
       <div className="max-w-6xl mx-auto text-center">
         <Reveal>

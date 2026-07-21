@@ -59,29 +59,48 @@ function Hero() {
       };
     }
 
-    const existing = document.querySelector(`script[src="${SPLINE_SCRIPT_SRC}"]`);
-    if (existing) {
-      existing.addEventListener("load", markReady);
-      existing.addEventListener("error", markFailed);
-    } else {
-      const script = document.createElement("script");
-      script.type = "module";
-      script.src = SPLINE_SCRIPT_SRC;
-      script.addEventListener("load", markReady);
-      script.addEventListener("error", markFailed);
-      document.head.appendChild(script);
+    let idleId;
+
+    function loadSplineScript() {
+      if (cancelled) return;
+
+      const existing = document.querySelector(`script[src="${SPLINE_SCRIPT_SRC}"]`);
+      if (existing) {
+        existing.addEventListener("load", markReady);
+        existing.addEventListener("error", markFailed);
+      } else {
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = SPLINE_SCRIPT_SRC;
+        script.addEventListener("load", markReady);
+        script.addEventListener("error", markFailed);
+        document.head.appendChild(script);
+      }
+
+      // customElements.whenDefined resolves once the tag is actually usable —
+      // more reliable than trusting the <script> "load" event alone, since
+      // the module can still be doing async setup work after it fires.
+      customElements.whenDefined("spline-viewer").then(markReady).catch(markFailed);
+
+      timeout = setTimeout(markFailed, SPLINE_SCRIPT_TIMEOUT_MS);
     }
 
-    // customElements.whenDefined resolves once the tag is actually usable —
-    // more reliable than trusting the <script> "load" event alone, since the
-    // module can still be doing async setup work after it fires.
-    customElements.whenDefined("spline-viewer").then(markReady).catch(markFailed);
-
-    timeout = setTimeout(markFailed, SPLINE_SCRIPT_TIMEOUT_MS);
+    // Kick off the multi-MB WebGL viewer once the browser is idle rather than
+    // the instant Hero mounts. This lets the title, gradient background, and
+    // rest of the first paint land immediately instead of competing with the
+    // 3D scene's script/asset download for bandwidth and main-thread time —
+    // the scene still appears within a fraction of a second either way.
+    if ("requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(loadSplineScript, { timeout: 1500 });
+    } else {
+      idleId = setTimeout(loadSplineScript, 0);
+    }
 
     return () => {
       cancelled = true;
       clearTimeout(timeout);
+      if ("cancelIdleCallback" in window) window.cancelIdleCallback(idleId);
+      else clearTimeout(idleId);
     };
   }, [isMobile]);
 

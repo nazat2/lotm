@@ -1,14 +1,25 @@
 import { useRef, useEffect } from "react";
+import useInView from "../hooks/useInView";
+import usePrefersReducedMotion from "../hooks/usePrefersReducedMotion";
 
 function SmokeTrail() {
   const canvasRef = useRef(null);
   const particles = useRef([]);
+  const reducedMotion = usePrefersReducedMotion();
+  const inView = useInView(canvasRef, { rootMargin: "150px 0px" });
+  const active = inView && !reducedMotion;
 
   useEffect(() => {
+    if (!active) return;
+
     const canvas = canvasRef.current;
-    const section = canvas.parentElement; // listen on the section, not the canvas
+    const section = canvas.parentElement;
     const ctx = canvas.getContext("2d");
     let animationId;
+    let running = !document.hidden;
+    let lastSpawn = 0;
+    const SPAWN_INTERVAL = 30; // throttle mousemove-driven spawns
+    const MAX_PARTICLES = 160;
 
     function resize() {
       canvas.width = canvas.offsetWidth;
@@ -18,6 +29,11 @@ function SmokeTrail() {
     window.addEventListener("resize", resize);
 
     function handleMouseMove(e) {
+      const now = performance.now();
+      if (now - lastSpawn < SPAWN_INTERVAL) return;
+      lastSpawn = now;
+      if (particles.current.length >= MAX_PARTICLES) return;
+
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -35,9 +51,16 @@ function SmokeTrail() {
       }
     }
 
-    section.addEventListener("mousemove", handleMouseMove);
+    section.addEventListener("mousemove", handleMouseMove, { passive: true });
+
+    function handleVisibility() {
+      running = !document.hidden;
+      if (running) animationId = requestAnimationFrame(animate);
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
 
     function animate() {
+      if (!running) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.current.forEach((p) => {
@@ -66,9 +89,12 @@ function SmokeTrail() {
     return () => {
       window.removeEventListener("resize", resize);
       section.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("visibilitychange", handleVisibility);
       cancelAnimationFrame(animationId);
+      particles.current = [];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
-  }, []);
+  }, [active]);
 
   return (
     <canvas

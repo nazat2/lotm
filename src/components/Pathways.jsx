@@ -52,7 +52,7 @@ function PathwayCard({ pathway }) {
 function Pathways() {
   return (
     <Reveal>
-    <section id="pathways" className="relative bg-void-light py-28 px-6">
+    <section id="pathways" className="relative bg-void-light py-28 px-6 [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-20">
           <p className="font-heading italic text-gold tracking-[0.3em] text-base uppercase mb-4">

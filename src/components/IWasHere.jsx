@@ -153,7 +153,7 @@ const MAX_VISIBLE = isMobile ? 5 : 25; ;
   return (
     <section
       id="characters"
-      className={`relative py-32 px-6 overflow-hidden scroll-mt-20 min-h-[850px] flex items-center justify-center ${
+      className={`relative py-32 px-6 overflow-hidden scroll-mt-20 min-h-[850px] flex items-center justify-center [content-visibility:auto] [contain-intrinsic-size:1px_850px] ${
         isMobile ? "bg-fog/20" : "bg-void"
       }`}
     >

@@ -1,5 +1,7 @@
 import { useRef, useEffect } from "react";
 import useIsMobile from "../hooks/useIsMobile";
+import useInView from "../hooks/useInView";
+import usePrefersReducedMotion from "../hooks/usePrefersReducedMotion";
 
 // A small, curated subset of the pathway tarot images (not all 22) so the
 // trail effect stays light — these are preloaded once and shared across
@@ -34,8 +36,15 @@ function ImageTrail() {
   const canvasRef = useRef(null);
   const particles = useRef([]);
   const isMobile = useIsMobile();
+  const reducedMotion = usePrefersReducedMotion();
+  // Only run the rAF loop while this canvas is actually near the viewport —
+  // for the rest of the scroll it costs nothing at all.
+  const inView = useInView(canvasRef, { rootMargin: "150px 0px" });
+  const active = inView && !reducedMotion;
 
   useEffect(() => {
+    if (!active) return;
+
     const canvas = canvasRef.current;
     const section = canvas.parentElement; // listen on the section, not the canvas
     const ctx = canvas.getContext("2d");
@@ -43,6 +52,7 @@ function ImageTrail() {
 
     let animationId;
     let lastSpawn = 0;
+    let running = !document.hidden;
 
     // Keep things light: fewer, smaller, shorter-lived cards on mobile.
     const MAX_PARTICLES = isMobile ? 12 : 20;
@@ -95,7 +105,16 @@ function ImageTrail() {
     section.addEventListener("touchstart", handleTouch, { passive: true });
     section.addEventListener("touchmove", handleTouch, { passive: true });
 
+    // Pause entirely while the tab is backgrounded — no point animating
+    // pixels nobody can see, and it keeps battery drain down on laptops.
+    function handleVisibility() {
+      running = !document.hidden;
+      if (running) animationId = requestAnimationFrame(animate);
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+
     function animate() {
+      if (!running) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.current.forEach((p) => {
@@ -128,10 +147,13 @@ function ImageTrail() {
       section.removeEventListener("mousemove", handleMouseMove);
       section.removeEventListener("touchstart", handleTouch);
       section.removeEventListener("touchmove", handleTouch);
+      document.removeEventListener("visibilitychange", handleVisibility);
       cancelAnimationFrame(animationId);
       particles.current = [];
+      // Clear the canvas so nothing stale lingers if the effect resumes later.
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
-  }, [isMobile]);
+  }, [isMobile, active]);
 
   return (
     <canvas

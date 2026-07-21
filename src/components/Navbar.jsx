@@ -6,8 +6,20 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
+    // rAF-throttled: a smooth-scroll library like Lenis can fire scroll
+    // events far more often than the display can paint, so without this a
+    // naive listener would call setState (and re-render the navbar) many
+    // times per frame instead of once.
+    let ticking = false;
+    function handleScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 50);
+        ticking = false;
+      });
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 

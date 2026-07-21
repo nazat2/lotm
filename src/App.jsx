@@ -1,11 +1,8 @@
-import { useState } from 'react'
 import './App.css'
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import World from './components/World';
 import Pathways from './components/Pathways';
-import Characters from './components/Characters';
-import Factions from './components/Factions';
 import Footer from './components/Footer';
 import useLenis from './hooks/useLenis';
 import IWasHere from './components/IWasHere';

@@ -6,7 +6,7 @@ function World() {
   return (
     <section
       id="world"
-      className="scroll-mt-24 relative bg-void py-32 px-6 overflow-hidden"
+      className="scroll-mt-24 relative bg-void py-32 px-6 overflow-hidden [content-visibility:auto] [contain-intrinsic-size:1px_900px]"
     >
      <ImageTrail />
 
