@@ -22,8 +22,22 @@ function Hero() {
     if (isMobile) return;
 
     let cancelled = false;
-    const markReady = () => !cancelled && setSceneReady(true);
-    const markFailed = () => !cancelled && setSceneFailed(true);
+    let isReady = false;
+    let timeout;
+
+    const markReady = () => {
+      if (cancelled || isReady) return;
+      isReady = true;
+      clearTimeout(timeout);
+      setSceneReady(true);
+    };
+    const markFailed = () => {
+      // Once the scene is ready, never let a stray/late error or the safety
+      // timeout flip it back off — that was causing the 3D to appear and
+      // then vanish again after a few seconds.
+      if (cancelled || isReady) return;
+      setSceneFailed(true);
+    };
 
     // Already registered from an earlier mount/navigation — show immediately.
     if (customElements.get("spline-viewer")) {
@@ -51,7 +65,7 @@ function Hero() {
     // module can still be doing async setup work after it fires.
     customElements.whenDefined("spline-viewer").then(markReady).catch(markFailed);
 
-    const timeout = setTimeout(markFailed, SPLINE_SCRIPT_TIMEOUT_MS);
+    timeout = setTimeout(markFailed, SPLINE_SCRIPT_TIMEOUT_MS);
 
     return () => {
       cancelled = true;

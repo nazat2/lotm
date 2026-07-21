@@ -12,7 +12,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import AmbientFog from "./AmbientFog";
-import SmokeTrail from "./SmokeTrail";
+import ImageTrail from "./ImageTrail";
 import Reveal from "./Reveal";
 import useIsMobile from "../hooks/useIsMobile";
 
@@ -157,7 +157,7 @@ const MAX_VISIBLE = isMobile ? 5 : 25; ;
         isMobile ? "bg-fog/20" : "bg-void"
       }`}
     >
-      {!isMobile && <SmokeTrail />}
+      <ImageTrail />
       {!isMobile && <AmbientFog />}
 
       {/* Floating names field */}
