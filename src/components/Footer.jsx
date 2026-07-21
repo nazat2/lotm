@@ -1,11 +1,4 @@
 
-const footerLinks = [
-  { label: "The World", href: "#world" },
-  { label: "Pathways", href: "#pathways" },
-  { label: "Characters", href: "#characters" },
-  { label: "Factions", href: "#factions" },
-];
-
 function Footer() {
   return (
     
@@ -73,10 +66,9 @@ function Footer() {
     <div className="flex items-center gap-3">
       <a
         href="mailto:mnajat0508@gmail.com"
-        className="opacity-40 hover:opacity-100 transition-opacity duration-300"
-        aria-label="Email"
+        className="font-heading text-parchment/50 text-sm sm:text-xs tracking-wide hover:text-gold transition-colors duration-300"
       >
-        <img src="/images/icons/gmail.svg" alt="Email" className="w-10 h-10 sm:w-5 sm:h-5" loading="lazy"/>
+        mnajat0508@gmail.com
       </a>
     </div>
   </div>

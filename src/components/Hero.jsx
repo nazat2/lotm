@@ -9,10 +9,22 @@ const SPLINE_SCENE_URL =
 // give up and just keep the lightweight gradient fallback.
 const SPLINE_SCRIPT_TIMEOUT_MS = 10000;
 
+function getViewportSize() {
+  if (typeof window === "undefined") return { width: 0, height: 0 };
+  return { width: window.innerWidth, height: window.innerHeight };
+}
+
 function Hero() {
   const isMobile = useIsMobile();
   const [sceneReady, setSceneReady] = useState(false);
   const [sceneFailed, setSceneFailed] = useState(false);
+  // The Spline web component measures its own box on mount to size its
+  // internal WebGL canvas. Handing it an explicit pixel size up front (based
+  // on the viewport, which is always immediately known) — rather than
+  // letting it infer size from percentage CSS — avoids the brief window
+  // where it can read a 0x0 box and spam GL_INVALID_* framebuffer errors
+  // while the browser is still settling layout.
+  const [viewport, setViewport] = useState(getViewportSize);
 
   // The Spline 3D viewer is a heavy WebGL asset (several MB + GPU/battery cost),
   // so it's only fetched on non-mobile devices to keep the mobile experience
@@ -73,6 +85,16 @@ function Hero() {
     };
   }, [isMobile]);
 
+  // Keep the explicit pixel size in sync with the viewport.
+  useEffect(() => {
+    if (isMobile) return;
+    function handleResize() {
+      setViewport(getViewportSize());
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isMobile]);
+
   const showScene = !isMobile && sceneReady && !sceneFailed;
 
   return (
@@ -85,10 +107,11 @@ function Hero() {
       </div>
 
       {/* Spline 3D scene — desktop/tablet only, layered above the gradient */}
-      {showScene && (
+      {showScene && viewport.width > 0 && viewport.height > 0 && (
         <spline-viewer
           url={SPLINE_SCENE_URL}
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0"
+          style={{ width: `${viewport.width}px`, height: `${viewport.height}px` }}
         />
       )}
 
