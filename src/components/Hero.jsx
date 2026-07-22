@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import useIsMobile from "../hooks/useIsMobile";
 
 const SPLINE_SCRIPT_SRC =
   "https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js";
@@ -15,7 +14,6 @@ function getViewportSize() {
 }
 
 function Hero() {
-  const isMobile = useIsMobile();
   const [sceneReady, setSceneReady] = useState(false);
   const [sceneFailed, setSceneFailed] = useState(false);
   // The Spline web component measures its own box on mount to size its
@@ -26,13 +24,14 @@ function Hero() {
   // while the browser is still settling layout.
   const [viewport, setViewport] = useState(getViewportSize);
 
-  // The Spline 3D viewer is a heavy WebGL asset (several MB + GPU/battery cost),
-  // so it's only fetched on non-mobile devices to keep the mobile experience
-  // light. A gradient background is always rendered underneath, so even if the
-  // script or scene fails to load, the hero never goes blank.
+  // The Spline 3D viewer is a heavy WebGL asset (several MB + GPU/battery
+  // cost), so it's loaded once the browser is idle rather than instantly on
+  // mount — on both desktop and mobile. spline-viewer handles touch input
+  // (drag-to-orbit, pinch-to-zoom) the same way it handles mouse input, so
+  // there's no separate mobile control scheme to wire up. A gradient
+  // background is always rendered underneath, so even if the script or
+  // scene fails to load, the hero never goes blank.
   useEffect(() => {
-    if (isMobile) return;
-
     let cancelled = false;
     let isReady = false;
     let timeout;
@@ -102,19 +101,18 @@ function Hero() {
       if ("cancelIdleCallback" in window) window.cancelIdleCallback(idleId);
       else clearTimeout(idleId);
     };
-  }, [isMobile]);
+  }, []);
 
-  // Keep the explicit pixel size in sync with the viewport.
+  // Keep the explicit pixel size in sync with the viewport, on every device.
   useEffect(() => {
-    if (isMobile) return;
     function handleResize() {
       setViewport(getViewportSize());
     }
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [isMobile]);
+  }, []);
 
-  const showScene = !isMobile && sceneReady && !sceneFailed;
+  const showScene = sceneReady && !sceneFailed;
 
   return (
     <section className="relative w-full h-screen overflow-hidden bg-void">
@@ -125,7 +123,7 @@ function Hero() {
         <div className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-crimson/10 rounded-full blur-3xl" />
       </div>
 
-      {/* Spline 3D scene — desktop/tablet only, layered above the gradient */}
+      {/* Spline 3D scene — layered above the gradient on every device */}
       {showScene && viewport.width > 0 && viewport.height > 0 && (
         <spline-viewer
           url={SPLINE_SCENE_URL}
