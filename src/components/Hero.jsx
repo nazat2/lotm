@@ -8,6 +8,22 @@ const SPLINE_SCENE_URL =
 // give up and just keep the lightweight gradient fallback.
 const SPLINE_SCRIPT_TIMEOUT_MS = 10000;
 
+// The Spline scene has its own internal responsive breakpoint: below a
+// certain canvas width it swaps to a different, busier mobile composition
+// (camera closer in, extra floating elements) rather than reusing the
+// desktop layout. Feeding it a real (narrow) phone viewport size was
+// triggering that mobile layout, which is why it looked so different from
+// desktop. Instead we always size the scene at this fixed "desktop" virtual
+// resolution — keeping the exact same composition everywhere — and then
+// scale that virtual canvas to visually cover the real viewport with CSS,
+// cropping the overflow like a background-size:cover image.
+// Kept as small as it reasonably can be while still safely clearing
+// Spline's own mobile breakpoint threshold, since every pixel here gets
+// multiplied by the device's pixel ratio for the actual WebGL backing
+// buffer — smaller design size = meaningfully less GPU work per frame.
+const SCENE_DESIGN_WIDTH = 1024;
+const SCENE_DESIGN_HEIGHT = 640;
+
 function getViewportSize() {
   if (typeof window === "undefined") return { width: 0, height: 0 };
   return { width: window.innerWidth, height: window.innerHeight };
@@ -114,6 +130,17 @@ function Hero() {
 
   const showScene = sceneReady && !sceneFailed;
 
+  // "Cover" scale factor: how much to blow up the fixed design canvas so it
+  // fully fills the real viewport in both dimensions (same math as CSS
+  // background-size: cover), then crop whatever spills over the edges.
+  const coverScale =
+    viewport.width > 0 && viewport.height > 0
+      ? Math.max(
+          viewport.width / SCENE_DESIGN_WIDTH,
+          viewport.height / SCENE_DESIGN_HEIGHT
+        )
+      : 1;
+
   return (
     <section className="relative w-full h-screen overflow-hidden bg-void">
       {/* Persistent gradient background — always present so the hero never
@@ -123,12 +150,20 @@ function Hero() {
         <div className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-crimson/10 rounded-full blur-3xl" />
       </div>
 
-      {/* Spline 3D scene — layered above the gradient on every device */}
+      {/* Spline 3D scene — layered above the gradient on every device, always
+          rendered at the fixed desktop composition and cropped to fit */}
       {showScene && viewport.width > 0 && viewport.height > 0 && (
         <spline-viewer
           url={SPLINE_SCENE_URL}
-          className="absolute inset-0"
-          style={{ width: `${viewport.width}px`, height: `${viewport.height}px` }}
+          width={SCENE_DESIGN_WIDTH}
+          height={SCENE_DESIGN_HEIGHT}
+          className="absolute top-1/2 left-1/2"
+          style={{
+            width: `${SCENE_DESIGN_WIDTH}px`,
+            height: `${SCENE_DESIGN_HEIGHT}px`,
+            transform: `translate(-50%, -50%) scale(${coverScale})`,
+            transformOrigin: "center",
+          }}
         />
       )}
 
@@ -150,8 +185,9 @@ function Hero() {
           "In the name of the Lord, let us pray for the fog to disperse..."
         </p>
 
-        {/* Scroll cue */}
-        <div className="absolute bottom-10 flex flex-col items-center gap-2 animate-bounce">
+        {/* Scroll cue — sits higher on small screens to clear the Spline
+            attribution badge pinned in the bottom corner */}
+        <div className="absolute bottom-20 sm:bottom-10 flex flex-col items-center gap-2 animate-bounce">
           <span className="text-gold-dim text-lg tracking-[0.2em] uppercase font-heading">Descend</span>
           <div className="w-px h-10 bg-gradient-to-b from-gold-dim to-transparent" />
         </div>
