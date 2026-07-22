@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import useInView from "../hooks/useInView";
 
 const SPLINE_SCRIPT_SRC =
   "https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js";
@@ -30,6 +31,7 @@ function getViewportSize() {
 }
 
 function Hero() {
+  const sectionRef = useRef(null);
   const [sceneReady, setSceneReady] = useState(false);
   const [sceneFailed, setSceneFailed] = useState(false);
   // The Spline web component measures its own box on mount to size its
@@ -39,6 +41,31 @@ function Hero() {
   // where it can read a 0x0 box and spam GL_INVALID_* framebuffer errors
   // while the browser is still settling layout.
   const [viewport, setViewport] = useState(getViewportSize);
+
+  // Once the Hero is scrolled fully out of view, the 3D scene is unmounted
+  // entirely (not just hidden) — that's what actually tears down the WebGL
+  // context and stops the GPU from rendering 60 frames a second for a scene
+  // nobody can see. rootMargin of 0 means it only unmounts once the section
+  // has genuinely left the viewport, not the moment it starts scrolling.
+  const heroInView = useInView(sectionRef, { rootMargin: "0px" });
+
+  // Debounce the "leaving view" transition specifically: a quick scroll
+  // flick past the boundary and back shouldn't force a full scene reload.
+  // Coming back into view, on the other hand, should feel instant.
+  const [sceneMounted, setSceneMounted] = useState(true);
+  useEffect(() => {
+    if (heroInView) {
+      // Resetting this synchronously (rather than through an async callback)
+      // is intentional: heroInView is itself external state driven by
+      // IntersectionObserver, and the scene should reappear the instant the
+      // section is back in view rather than lagging a tick behind.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSceneMounted(true);
+      return;
+    }
+    const timeout = setTimeout(() => setSceneMounted(false), 600);
+    return () => clearTimeout(timeout);
+  }, [heroInView]);
 
   // The Spline 3D viewer is a heavy WebGL asset (several MB + GPU/battery
   // cost), so it's loaded once the browser is idle rather than instantly on
@@ -128,7 +155,7 @@ function Hero() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const showScene = sceneReady && !sceneFailed;
+  const showScene = sceneReady && !sceneFailed && sceneMounted;
 
   // "Cover" scale factor: how much to blow up the fixed design canvas so it
   // fully fills the real viewport in both dimensions (same math as CSS
@@ -142,7 +169,7 @@ function Hero() {
       : 1;
 
   return (
-    <section className="relative w-full h-screen overflow-hidden bg-void">
+    <section ref={sectionRef} className="relative w-full h-screen overflow-hidden bg-void">
       {/* Persistent gradient background — always present so the hero never
           appears blank, whether on mobile or while the 3D scene loads/fails */}
       <div className="absolute inset-0 bg-gradient-to-br from-void via-void-light to-void">
@@ -151,7 +178,9 @@ function Hero() {
       </div>
 
       {/* Spline 3D scene — layered above the gradient on every device, always
-          rendered at the fixed desktop composition and cropped to fit */}
+          rendered at the fixed desktop composition and cropped to fit.
+          Unmounted entirely once the section scrolls out of view so the GPU
+          isn't rendering it 60x a second for nobody. */}
       {showScene && viewport.width > 0 && viewport.height > 0 && (
         <spline-viewer
           url={SPLINE_SCENE_URL}
