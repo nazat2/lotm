@@ -59,7 +59,7 @@ function Footer() {
 <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-gold-dim/10">
   <div className="flex items-center gap-4">
     <p className="font-heading text-parchment/70 text-base sm:text-xs tracking-[0.10em] ">
-      © {new Date().getFullYear()} Created by Lance Christian C. Crucis
+      © {new Date().getFullYear()} Created by Created by Lance
     </p>
 
     {/* Contact */}
